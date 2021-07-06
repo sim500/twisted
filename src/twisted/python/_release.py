@@ -527,11 +527,22 @@ class CheckNewsfragmentScript:
         encoding = sys.stdout.encoding or "ascii"
         location = os.path.abspath(args[0])
 
-        branch = (
-            runCommand([b"git", b"rev-parse", b"--abbrev-ref", "HEAD"], cwd=location)
-            .decode(encoding)
-            .strip()
-        )
+        # On GitHub for a PR run we have a merge branch
+        # that looks like refs/pull/1614/merge
+        # This is why we extract the branch from the GitHub Actions
+        # environment variable.
+        branch = os.environ.get("GITHUB_HEAD_REF", "")
+        if not branch:
+            # Not on GHA. Get branch via git.
+            branch = (
+                runCommand(
+                    [b"git", b"rev-parse", b"--abbrev-ref", "HEAD"], cwd=location
+                )
+                .decode(encoding)
+                .strip()
+            )
+
+        self._print(f"Detected branch name: {branch}")
 
         # diff-filter=d to exclude deleted newsfiles (which will happen on the
         # release branch)
