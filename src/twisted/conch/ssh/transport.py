@@ -507,9 +507,6 @@ class SSHTransportBase(protocol.Protocol):
         version and the MSG_KEXINIT packet.
         """
         self.transport.write(self.ourVersionString + b"\r\n")
-        self.currentEncryptions = SSHCiphers(b"none", b"none", b"none", b"none")
-        self.currentEncryptions.setKeys(b"", b"", b"", b"", b"", b"")
-        self.sendKexInit()
 
     def sendKexInit(self):
         """
@@ -715,6 +712,9 @@ class SSHTransportBase(protocol.Protocol):
                         return
                     i = lines.index(p)
                     self.buf = b"\n".join(lines[i + 1 :])
+                    self.currentEncryptions = SSHCiphers(b"none", b"none", b"none", b"none")
+                    self.currentEncryptions.setKeys(b"", b"", b"", b"", b"", b"")
+                    self.sendKexInit()
         packet = self.getPacket()
         while packet:
             messageNum = ord(packet[0:1])
